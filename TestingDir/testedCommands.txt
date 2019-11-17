@@ -1,0 +1,5 @@
+ls
+ls -la 
+ls -la | ls
+ls -la >& test.txt < testedCommands.txt
+ls -la >& test.txt >> error.txt
