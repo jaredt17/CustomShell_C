@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include "y.tab.h"
+#include <stdlib.h>
 
 enum state { START, PROGNAME, CLA, 	FILENAME,  INPUT_REDIRECT, OUTPUT_REDIRECT_APPEND, OUTPUT_REDIRECT_WRITE, EXECUTE, STDERR_OVERWRITE, STDERR_APPEND, ERROR, END};
 char statestr[12][25] = { "START", "PROGNAME","CLA", 	"FILENAME",  "INPUT_REDIRECT", "OUTPUT_REDIRECT_APPEND", "OUTPUT_REDIRECT_WRITE", "EXECUTE", "STDERR_OVERWRITE", "STDERR_APPEND", "ERROR", "END" };
@@ -42,7 +43,7 @@ int main(int argc, char * argv[]) {
 	int pos = 0;
 	int startpos = 0;
 
-
+	//as of now running for only one command and then exiting, need overarching while loop
 	int textlength;
 	while(token != NEWLINE) {
 		getNext(&token, text, TEXTSIZE, &textlength);
@@ -50,7 +51,20 @@ int main(int argc, char * argv[]) {
 		//printf("token %d, text >%s< \n", token, text);
 		printf("CURstate %s,  token %d\n", statestr[curstate], token-NOTOKEN);
 		curstate = table[curstate][token-NOTOKEN];
-		printf("NEWstate %s,  token %d\n", statestr[curstate], token-NOTOKEN);
+		switch (curstate){
+			case PROGNAME:
+				break;
+			case CLA:
+				break;
+			//add all cases here for each step in the state machine
+			//every time there is a pipe we need to create a simple command
+			case ERROR:
+				printf("Error exiting...");
+				exit(0);
+			default:
+				break;
+
+		}
 		pos++;
 	}
 	return 0;
