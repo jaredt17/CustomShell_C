@@ -45,6 +45,7 @@ void insertArgument(SimpleCommand *command, char * argument ); // or global *_cu
 void printAllCommands(Command * command);
 
 
+//THE TABLE BELOW IS FOR A FINITE STATE MACHINE AS DESCRIBED IN THE FILE: DRAWING
 					//  0 			1			2		3		4			5			6		7					8					9
 int table[11][10] = { // NoToken", "GREAT", "NEWLINE", "WORD", "GREATGREAT", "PIPE", "LESS", "GREATAPERSAND", "GREATGREATAPERSAND", "AMPERSAND"
 					{  	ERROR   , ERROR  ,ERROR  , PROGNAME, ERROR, ERROR, ERROR, ERROR,ERROR,ERROR }, // start
@@ -199,13 +200,11 @@ int main(int argc, char * argv[]) {
 void insertSimpleCommand(SimpleCommand * simpleCommand, Command * command ){
 	//printf("GOT HERE");
 	command->_simpleCommands = malloc(command->_numberOfSimpleCommands * sizeof(*command->_simpleCommands));
-
 	command->_simpleCommands[command->_numberOfSimpleCommands] = simpleCommand;
-
 	command->_numberOfSimpleCommands++; //increase the number of simple commands in the commands
 }
 
-void printAllCommands(Command * command){
+void printAllCommands(Command * command){ //dont run this it was just used for testing a specific element in commands
 	//for(int i = 0; i < command->_numberOfSimpleCommands; i++){
 		printf("\n\n%s\n\n", command->_simpleCommands[1]->_arguments[2]);
 		
@@ -217,7 +216,6 @@ void insertArgument(SimpleCommand *command, char * argument ) {
 	//allocate space for the new command
 	command->_arguments[command->_numberOfArguments] = (char*)malloc(sizeof(char*) * strlen(argument));
 	strcpy(command->_arguments[command->_numberOfArguments], argument);
-
 	command->_numberOfArguments++;
 }
 
@@ -246,7 +244,7 @@ void execute(Command * command){
 	int fdin;
 	
 	if (command->_inputFile != NULL){
-		fdin = open(command->_inputFile, O_RDWR | O_CREAT | O_TRUNC);
+		fdin = open(command->_inputFile, O_RDWR | O_CREAT, 0666);
 	}
 	else{
 
@@ -266,10 +264,10 @@ void execute(Command * command){
 			// Last simple command
 			if (command->_outFile){
 				if(command->outputAppend == 1){
-					fdout = open(command->_outFile,  O_RDWR | O_APPEND | O_CREAT);
+					fdout = open(command->_outFile,  O_RDWR | O_APPEND | O_CREAT, 0666);
 					printf("\nOUTFILE NAME APPEND: %s\n", command->_outFile);
 				}else{ //overwrite mode
-					fdout = open(command->_outFile,  O_RDWR | O_CREAT | O_TRUNC);
+					fdout = open(command->_outFile,  O_RDWR | O_CREAT | O_TRUNC, 0666);
 					printf("\nOUTFILE NAME: %s\n", command->_outFile);
 				}
 				

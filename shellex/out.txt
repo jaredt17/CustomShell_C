@@ -1,0 +1,15 @@
+total 288
+drwxrwxrwx 1 jaredt17 jaredt17   512 Nov 23 22:57 .
+drwxrwxrwx 1 jaredt17 jaredt17   512 Nov 23 21:57 ..
+-rw-rw-rw- 1 jaredt17 jaredt17     0 Nov 23 22:56 in.txt
+-rw-rw-rw- 1 jaredt17 jaredt17 45538 Nov 15 20:09 lex.yy.c
+-rw-rw-rw- 1 jaredt17 jaredt17 42568 Nov 23 22:54 lex.yy.o
+-rwxrwxrwx 1 jaredt17 jaredt17 42704 Nov 23 22:54 lexical
+-rw-rw-rw- 1 jaredt17 jaredt17 10206 Nov 23 22:53 lexical.c
+-rw-rw-rw- 1 jaredt17 jaredt17 18272 Nov 23 22:54 lexical.o
+-rw-rw-rw- 1 jaredt17 jaredt17   169 Nov 17 00:21 makefile
+-rw-rw-rw- 1 jaredt17 jaredt17     0 Nov 23 22:59 out.txt
+-rw-rw-rw- 1 jaredt17 jaredt17  1041 Nov 15 20:03 readme.txt
+-rw-rw-rw- 1 jaredt17 jaredt17   763 Nov 15 20:03 shell.l
+-rw-rw-rw- 1 jaredt17 jaredt17    19 Nov 23 21:59 test.txt
+-rw-rw-rw- 1 jaredt17 jaredt17  2275 Nov 17 00:41 y.tab.h
