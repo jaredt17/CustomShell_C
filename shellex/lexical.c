@@ -119,6 +119,7 @@ int main(int argc, char * argv[]) {
 		switch (curstate){ //we will have specific actions for each state defined in the table, every time there is a pipe we need to create a simple command
 			case START:
 				if(prevstate != ERROR){
+					//print(_currentSimpleCommand);
 					insertSimpleCommand(_currentSimpleCommand, _currentCommand);
 					clear(_currentSimpleCommand);
 				}
@@ -166,26 +167,33 @@ int main(int argc, char * argv[]) {
 				_currentCommand->_background = 1;
 				break;
 			case END:
+			
 				insertSimpleCommand(_currentSimpleCommand, _currentCommand);
+				
+				//print(_currentSimpleCommand);
+
+				//clearly, the values are being overwritten
+				//printf("\n\n%s\n\n", _currentCommand->_simpleCommands[0]->_arguments[1]);
+				//printf("\n\n%s\n\n", _currentCommand->_simpleCommands[0]->_arguments[0]);
+				
 				execute(_currentCommand);
-				clear(_currentSimpleCommand);
 				break;
 
 			case ERROR:
 				prevstate = ERROR;
 				printf("Error Try Again...\n");
 				printf("%%");
-				clear(_currentSimpleCommand);
-
 			default:
 				break;
 
 		}
 	}
-	printf("\n%%");
-}
+	print(_currentSimpleCommand);
+	//printf("\n\n%s\n\n", _currentCommand->_simpleCommands[1]->_arguments[1]);
+	clear(_currentSimpleCommand); //reset the simple command
+	}
 
-	//print(_currentSimpleCommand);
+	
 
 	//printAllCommands(_currentCommand);
 	//execute(_currentCommand);
@@ -199,9 +207,16 @@ int main(int argc, char * argv[]) {
 //INSERTS A SIMPLE COMMAND INTO THE ARRAY INSIDE COMMANDS
 void insertSimpleCommand(SimpleCommand * simpleCommand, Command * command ){
 	//printf("GOT HERE");
-	command->_simpleCommands = malloc(command->_numberOfSimpleCommands * sizeof(*command->_simpleCommands));
-	command->_simpleCommands[command->_numberOfSimpleCommands] = simpleCommand;
+	//print(simpleCommand);
+	//command->_simpleCommands = malloc(command->_numberOfSimpleCommands * sizeof(*command->_simpleCommands));
+	command->_simpleCommands = realloc(command->_simpleCommands, sizeof(simpleCommand)* command->_numberOfSimpleCommands);
+
+	SimpleCommand * tempCommand = simpleCommand;
+	//printf("NUM SIMPLE COMMANDS SO FAR: %d", command->_numberOfSimpleCommands);
+	command->_simpleCommands[command->_numberOfSimpleCommands] = tempCommand;
+	//print(command->_simpleCommands[0]);
 	command->_numberOfSimpleCommands++; //increase the number of simple commands in the commands
+	//printf("NUM SIMPLE COMMANDS SO FAR: %d", command->_numberOfSimpleCommands);
 }
 
 void printAllCommands(Command * command){ //dont run this it was just used for testing a specific element in commands
@@ -214,15 +229,18 @@ void printAllCommands(Command * command){ //dont run this it was just used for t
 //insert argument into simple command
 void insertArgument(SimpleCommand *command, char * argument ) {
 	//allocate space for the new command
-	command->_arguments[command->_numberOfArguments] = (char*)malloc(sizeof(char*) * strlen(argument));
+	command->_arguments[command->_numberOfArguments] = (char*)realloc(command->_arguments[command->_numberOfArguments], sizeof(char*) * strlen(argument));
 	strcpy(command->_arguments[command->_numberOfArguments], argument);
+	command->_arguments[command->_numberOfArguments+1] = NULL;
 	command->_numberOfArguments++;
 }
 
 void print(SimpleCommand *command){
+	printf("\n___SIMPLE COMMAND____\n");
 	for(int i = 0; i < command->_numberOfArguments; i++){ //for the number of commands
-		printf("\nArg %d: %s\n", i, command->_arguments[i]);
+		printf("Arg %d: %s\n", i, command->_arguments[i]);
 	}
+	printf("___END____\n");
 }
 
 void clear(SimpleCommand *command){
@@ -255,6 +273,9 @@ void execute(Command * command){
 	pid_t ret;
 	int fdout;
 	for (int i = 0; i < command->_numberOfSimpleCommands; i++){
+
+		printf("\n\nTEST: %d	%s\n\n", i, command->_simpleCommands[i]->_arguments[0]);
+
 		//redirect input
 		dup2(fdin, 0);
 		close(fdin);
