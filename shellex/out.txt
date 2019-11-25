@@ -1,12 +1,16 @@
-in.txt
-lex.yy.c
-lex.yy.o
-lexical
-lexical.c
-lexical.o
-makefile
-out.txt
-readme.txt
-shell.l
-test.txt
-y.tab.h
+'qk mlkdqwdqwklmqwkem
+LINE 13
+LINE 13
+LINE 13
+LINE 13
+asdmkjlasnlnajkn
+asdnajn iuqwh wqe
+askdmkasldkla
+aslkdmnaslkdm malkdmaslkdm asdmkjlasnlnajknasdlkmalkm
+dmfnakjnjaskndkjn
+kasmndlkm 
+qwemlkqwnmklmelkm
+qwemqwmeklqm
+qwemqwmeklqmqwkelq
+qwewqe
+qwkenwqjenlkjwqne 9u

@@ -20,7 +20,7 @@ typedef struct SimpleCommand {
 	// Number of arguments
 	int _numberOfArguments;
 	// Array of arguments
-	char *_arguments[];
+	char **_arguments;
 }SimpleCommand;
 
 // Describes a complete command with the multiple pipes if any
@@ -34,21 +34,25 @@ typedef struct Command {
         char * _errFile;
         int _background;
 		int outputAppend;
+		int stdErrAppend;
 }Command;
 
 //FUNCTION DEFINITIONS
 void insertSimpleCommand( SimpleCommand * simpleCommand, Command * command );
 void print();
 void execute();
-void clear(SimpleCommand *command);
+void clear(Command *command);
 void insertArgument(SimpleCommand *command, char * argument ); // or global *_currentSimpleCommand instead of parameter
 void printAllCommands(Command * command);
+
+Command* initCommand();
+SimpleCommand* initSimpleCommand();
 
 
 //THE TABLE BELOW IS FOR A FINITE STATE MACHINE AS DESCRIBED IN THE FILE: DRAWING
 					//  0 			1			2		3		4			5			6		7					8					9
 int table[11][10] = { // NoToken", "GREAT", "NEWLINE", "WORD", "GREATGREAT", "PIPE", "LESS", "GREATAPERSAND", "GREATGREATAPERSAND", "AMPERSAND"
-					{  	ERROR   , ERROR  ,ERROR  , PROGNAME, ERROR, ERROR, ERROR, ERROR,ERROR,ERROR }, // start
+					{  	ERROR   , ERROR  ,START  , PROGNAME, ERROR, ERROR, ERROR, ERROR,ERROR,ERROR }, // start
 
 				  	{  	ERROR, OUTPUT_REDIRECT_WRITE, END, CLA, OUTPUT_REDIRECT_APPEND, START, INPUT_REDIRECT, STDERR_OVERWRITE, STDERR_APPEND, BACKGROUND}, //PROGNAME
 
@@ -68,7 +72,7 @@ int table[11][10] = { // NoToken", "GREAT", "NEWLINE", "WORD", "GREATGREAT", "PI
 
 					{	ERROR, ERROR, ERROR, FILENAME,ERROR, ERROR, ERROR, ERROR, ERROR, ERROR},//STDERR_APPEND
 
-					{  	ERROR   , ERROR  ,START  , PROGNAME, ERROR, ERROR, ERROR, ERROR,ERROR,ERROR }}; //ERROR
+					{  	ERROR   , ERROR  ,PROGNAME  , PROGNAME, ERROR, ERROR, ERROR, ERROR,ERROR,ERROR }}; //ERROR
 
 
 extern void getNext(enum yytokentype *, char *, int, int *);
@@ -82,22 +86,25 @@ void printToken(enum yytokentype token) {
 
 int main(int argc, char * argv[]) { 
 
-	while(1){
+	//initialize the global currentsimplecommand struct
+    SimpleCommand* curSimpleCommand;
+    
+    //SET UP COMMAND struct
+   	Command* _currentCommand;
+
+	while(1){ //keep running until ctrl C -- need to add exit command
+	clear(_currentCommand);
+	_currentCommand = initCommand();
+
+	int outputRed = 0;
+	int inRed = 0;
+
 	printf("%%");
 	
 	//set up simple command struct
 	//initialize the global currentsimplecommand struct
-	SimpleCommand *_currentSimpleCommand = malloc(sizeof(*_currentSimpleCommand) + sizeof(char[50]));
-	_currentSimpleCommand->_numberOfArguments = 0;
-	_currentSimpleCommand->_numberOfAvailableArguments = 1;
-	_currentSimpleCommand->_arguments[_currentSimpleCommand->_numberOfArguments] = (char*)malloc(sizeof(char*) * 50);
-
-	//SET UP COMMAND struct
-	Command *_currentCommand = (Command*)malloc(2 * sizeof(Command));
-	_currentCommand->_numberOfSimpleCommands = 0;
-	_currentCommand->_background = 0;
-	_currentCommand->outputAppend = 0;
-
+	
+ 	curSimpleCommand = initSimpleCommand();
     char text[TEXTSIZE];
 	enum yytokentype token = NOTOKEN;
 	
@@ -118,20 +125,26 @@ int main(int argc, char * argv[]) {
 		curstate = table[curstate][token-NOTOKEN];
 		switch (curstate){ //we will have specific actions for each state defined in the table, every time there is a pipe we need to create a simple command
 			case START:
+				if(token == NEWLINE){
+					printf("%%");
+				}
 				if(prevstate != ERROR){
 					//print(_currentSimpleCommand);
-					insertSimpleCommand(_currentSimpleCommand, _currentCommand);
-					clear(_currentSimpleCommand);
+					insertSimpleCommand(curSimpleCommand, _currentCommand);
+					curSimpleCommand = initSimpleCommand();
 				}
 				//note we will only get here on starts after the first one
 				//print(_currentSimpleCommand);
 				//need to clear the simple command for the next one
 				break;
 			case PROGNAME:
-				insertArgument(_currentSimpleCommand,text);
+				if(strcmp(text, "quit") == 0 || strcmp(text, "exit") == 0){
+					exit(0);
+				}
+				insertArgument(curSimpleCommand,text);
 				break;
 			case CLA:
-				insertArgument(_currentSimpleCommand,text);
+				insertArgument(curSimpleCommand,text);
 				break;
 			case FILENAME:
 				if(prevstate == INPUT_REDIRECT){
@@ -142,55 +155,81 @@ int main(int argc, char * argv[]) {
 					_currentCommand->_outFile = fileText;
 				}else if(prevstate == OUTPUT_REDIRECT_WRITE){
 					strcpy(fileText, text);
-					printf("%s", fileText);
+					//printf("%s", fileText);
 					_currentCommand->_outFile = fileText;
-					printf("\nFILENAME: %s\n", _currentCommand->_outFile);
+					//printf("\nFILENAME: %s\n", _currentCommand->_outFile);
+				}else if(prevstate == STDERR_APPEND){
+					strcpy(fileText, text);
+					_currentCommand->_errFile = fileText;
+				}else if(prevstate == STDERR_OVERWRITE){
+					strcpy(fileText, text);
+					_currentCommand->_errFile = fileText;
 				}
 				break;
 			case INPUT_REDIRECT:
+				inRed++;
+				if(inRed != 1){
+					fprintf(stderr, "You can only have one input redirect per command... Try again\n");
+					prevstate = ERROR;
+					curstate = ERROR;
+					break;
+				}
 				prevstate = INPUT_REDIRECT;
 				break;
 			case OUTPUT_REDIRECT_APPEND:
+				outputRed++;
+				if(outputRed != 1){
+					fprintf(stderr, "You can only have one output redirect per command... Try again\n");
+					prevstate = ERROR;
+					curstate = ERROR;
+					break;
+				}
 				prevstate = OUTPUT_REDIRECT_APPEND;
 				_currentCommand->outputAppend = 1;
 				break;
 			case OUTPUT_REDIRECT_WRITE:
+				outputRed++;
+					if(outputRed != 1){
+						fprintf(stderr, "You can only have one output redirect per command... Try again\n");
+						prevstate = ERROR;
+						curstate = ERROR;
+						break;
+					}
 				prevstate = OUTPUT_REDIRECT_WRITE;
 				break;
 			case STDERR_OVERWRITE:
-				insertArgument(_currentSimpleCommand,text);
+				prevstate = STDERR_OVERWRITE;
 				break;
 			case STDERR_APPEND:
-				insertArgument(_currentSimpleCommand,text);
+				prevstate = STDERR_APPEND;
+				_currentCommand->stdErrAppend = 1;
 				break;
 			case BACKGROUND:
 				_currentCommand->_background = 1;
 				break;
 			case END:
-			
-				insertSimpleCommand(_currentSimpleCommand, _currentCommand);
-				
-				//print(_currentSimpleCommand);
+				if(prevstate != ERROR){
+					insertSimpleCommand(curSimpleCommand, _currentCommand);
+					curSimpleCommand = initSimpleCommand();
 
-				//clearly, the values are being overwritten
-				//printf("\n\n%s\n\n", _currentCommand->_simpleCommands[0]->_arguments[1]);
-				//printf("\n\n%s\n\n", _currentCommand->_simpleCommands[0]->_arguments[0]);
+					execute(_currentCommand);
+					initCommand(_currentCommand);
+				}
 				
-				execute(_currentCommand);
 				break;
 
 			case ERROR:
 				prevstate = ERROR;
-				printf("Error Try Again...\n");
-				printf("%%");
+				fprintf(stderr, "Bad command: Press Enter to continue ...\n");
+				break;
 			default:
 				break;
 
 		}
 	}
-	print(_currentSimpleCommand);
+	//print(curSimpleCommand);
 	//printf("\n\n%s\n\n", _currentCommand->_simpleCommands[1]->_arguments[1]);
-	clear(_currentSimpleCommand); //reset the simple command
+	//clear(curSimpleCommand); //reset the simple command
 	}
 
 	
@@ -204,19 +243,39 @@ int main(int argc, char * argv[]) {
 	return 0;
 }
 
-//INSERTS A SIMPLE COMMAND INTO THE ARRAY INSIDE COMMANDS
-void insertSimpleCommand(SimpleCommand * simpleCommand, Command * command ){
-	//printf("GOT HERE");
-	//print(simpleCommand);
-	//command->_simpleCommands = malloc(command->_numberOfSimpleCommands * sizeof(*command->_simpleCommands));
-	command->_simpleCommands = realloc(command->_simpleCommands, sizeof(simpleCommand)* command->_numberOfSimpleCommands);
 
-	SimpleCommand * tempCommand = simpleCommand;
-	//printf("NUM SIMPLE COMMANDS SO FAR: %d", command->_numberOfSimpleCommands);
-	command->_simpleCommands[command->_numberOfSimpleCommands] = tempCommand;
-	//print(command->_simpleCommands[0]);
-	command->_numberOfSimpleCommands++; //increase the number of simple commands in the commands
-	//printf("NUM SIMPLE COMMANDS SO FAR: %d", command->_numberOfSimpleCommands);
+Command* initCommand(){
+    Command* _currentCommand = malloc(sizeof(SimpleCommand) * 2);
+    _currentCommand->_simpleCommands = malloc(sizeof(SimpleCommand) * 50);
+    _currentCommand->_numberOfSimpleCommands = 0;
+    _currentCommand->_numberOfAvailableSimpleCommands = 50;
+    _currentCommand->_inputFile = NULL;
+    _currentCommand->_outFile = NULL;
+    _currentCommand->_errFile = NULL;
+    _currentCommand->outputAppend = 0;
+    _currentCommand->_background = 0;
+	_currentCommand->stdErrAppend = 0;
+    return _currentCommand;
+}
+
+SimpleCommand* initSimpleCommand(){
+    SimpleCommand* curSimpleCommand = malloc(sizeof(SimpleCommand)*50);
+    curSimpleCommand->_arguments = malloc(sizeof(char*)*50);
+    curSimpleCommand->_numberOfArguments = 0;
+    curSimpleCommand->_numberOfAvailableArguments = 50;
+    return curSimpleCommand;
+}
+
+
+//INSERTS A SIMPLE COMMAND INTO THE ARRAY INSIDE COMMANDS
+void insertSimpleCommand(SimpleCommand* curSimpleCommand, Command* _currentCommand ){
+    if(_currentCommand->_numberOfSimpleCommands == _currentCommand->_numberOfAvailableSimpleCommands){
+        _currentCommand->_numberOfAvailableSimpleCommands *= 2;
+         _currentCommand->_simpleCommands = realloc(_currentCommand->_simpleCommands, sizeof(*curSimpleCommand)* _currentCommand->_numberOfAvailableSimpleCommands);
+    }
+   
+    _currentCommand->_simpleCommands[_currentCommand->_numberOfSimpleCommands] = curSimpleCommand;
+    _currentCommand->_numberOfSimpleCommands++; //increase the number of simple commands in the commands
 }
 
 void printAllCommands(Command * command){ //dont run this it was just used for testing a specific element in commands
@@ -227,12 +286,12 @@ void printAllCommands(Command * command){ //dont run this it was just used for t
 }
 
 //insert argument into simple command
-void insertArgument(SimpleCommand *command, char * argument ) {
-	//allocate space for the new command
-	command->_arguments[command->_numberOfArguments] = (char*)realloc(command->_arguments[command->_numberOfArguments], sizeof(char*) * strlen(argument));
-	strcpy(command->_arguments[command->_numberOfArguments], argument);
-	command->_arguments[command->_numberOfArguments+1] = NULL;
-	command->_numberOfArguments++;
+void insertArgument(SimpleCommand* curSimpleCommand, char * argument ) {
+   //allocate space for the new command
+	curSimpleCommand->_arguments[curSimpleCommand->_numberOfArguments] = (char*)realloc(curSimpleCommand->_arguments[curSimpleCommand->_numberOfArguments], sizeof(char*) * strlen(argument));
+	strcpy(curSimpleCommand->_arguments[curSimpleCommand->_numberOfArguments], argument);
+	curSimpleCommand->_arguments[curSimpleCommand->_numberOfArguments+1] = NULL;
+	curSimpleCommand->_numberOfArguments++;
 }
 
 void print(SimpleCommand *command){
@@ -243,17 +302,13 @@ void print(SimpleCommand *command){
 	printf("___END____\n");
 }
 
-void clear(SimpleCommand *command){
+void clear(Command *command){
 	free(command);
-	SimpleCommand *_currentSimpleCommand = malloc(sizeof(*_currentSimpleCommand) + sizeof(char[50]));
-	_currentSimpleCommand->_numberOfArguments = 0;
-	_currentSimpleCommand->_numberOfAvailableArguments = 1;
-	_currentSimpleCommand->_arguments[_currentSimpleCommand->_numberOfArguments] = (char*)malloc(sizeof(char*) * 50);
 }
 
 void execute(Command * command){
-	printf("\n__AFTER EXECUTING__\n");
-	printf("\n\nNUMBER OF SIMPLE COMMANDS IN COMMAND %d\n\n", command->_numberOfSimpleCommands);
+	//printf("\n__AFTER EXECUTING__\n");
+	//printf("\n\nNUMBER OF SIMPLE COMMANDS IN COMMAND %d\n\n", command->_numberOfSimpleCommands);
 	//save in/out
 	int tmpin = dup(0);
 	int tmpout = dup(1);
@@ -274,7 +329,7 @@ void execute(Command * command){
 	int fdout;
 	for (int i = 0; i < command->_numberOfSimpleCommands; i++){
 
-		printf("\n\nTEST: %d	%s\n\n", i, command->_simpleCommands[i]->_arguments[0]);
+		//printf("\n\nTEST: %d	%s\n\n", i, command->_simpleCommands[i]->_arguments[0]);
 
 		//redirect input
 		dup2(fdin, 0);
@@ -286,10 +341,10 @@ void execute(Command * command){
 			if (command->_outFile){
 				if(command->outputAppend == 1){
 					fdout = open(command->_outFile,  O_RDWR | O_APPEND | O_CREAT, 0666);
-					printf("\nOUTFILE NAME APPEND: %s\n", command->_outFile);
+					//printf("\nOUTFILE NAME APPEND: %s\n", command->_outFile);
 				}else{ //overwrite mode
 					fdout = open(command->_outFile,  O_RDWR | O_CREAT | O_TRUNC, 0666);
-					printf("\nOUTFILE NAME: %s\n", command->_outFile);
+					//printf("\nOUTFILE NAME: %s\n", command->_outFile);
 				}
 				
 				
