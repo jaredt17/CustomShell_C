@@ -44,6 +44,7 @@ void execute();
 void clear(Command *command);
 void insertArgument(SimpleCommand *command, char * argument ); // or global *_currentSimpleCommand instead of parameter
 void printAllCommands(Command * command);
+void goToNewline();
 
 Command* initCommand();
 SimpleCommand* initSimpleCommand();
@@ -219,8 +220,9 @@ int main(int argc, char * argv[]) {
 				break;
 
 			case ERROR:
+				goToNewline(); //goes to the end of the current line before resetting
 				prevstate = ERROR;
-				fprintf(stderr, "Bad command: Press Enter to continue ...\n");
+				fprintf(stderr, "Error: Invalid Command.\n");
 				break;
 			default:
 				break;
@@ -304,6 +306,16 @@ void print(SimpleCommand *command){
 
 void clear(Command *command){
 	free(command);
+}
+
+
+void goToNewline(){
+	char text[TEXTSIZE];
+	enum yytokentype token = NOTOKEN;
+	int textlength;
+	while(token != NEWLINE){
+		getNext(&token, text, TEXTSIZE, &textlength);
+	}
 }
 
 void execute(Command * command){
