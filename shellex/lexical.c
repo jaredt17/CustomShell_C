@@ -312,12 +312,27 @@ void execute(Command * command){
 	//save in/out
 	int tmpin = dup(0);
 	int tmpout = dup(1);
+	int tmperr = dup(2);
 
 	//set the initial input
 	int fdin;
-	
+
+	//set up initial error
+	int fderr;
+	if(command->_errFile != NULL){
+		if(command->stdErrAppend == 1){
+			fderr = open(command->_errFile, O_RDWR | O_APPEND);
+		}else{
+			fderr = open(command->_errFile, O_RDWR | O_CREAT | O_TRUNC, 0666);
+		}
+	}
+	else{
+		//use default error
+		fderr = dup(tmperr);
+	} //err file now set up for either append or create mode
+
 	if (command->_inputFile != NULL){
-		fdin = open(command->_inputFile, O_RDWR | O_CREAT, 0666);
+		fdin = open(command->_inputFile, O_RDWR);
 	}
 	else{
 
@@ -334,6 +349,11 @@ void execute(Command * command){
 		//redirect input
 		dup2(fdin, 0);
 		close(fdin);
+
+		//redirect to err file
+		dup2(fderr, 2);
+		close(fderr);
+
 		//setup output
 		if (i == command->_numberOfSimpleCommands - 1){
 
@@ -363,6 +383,7 @@ void execute(Command * command){
 			pipe(fdpipe);
 			fdout = fdpipe[1];
 			fdin = fdpipe[0];
+			fderr = fdpipe[2];
 		} // if/else
 
 		// Redirect output
@@ -381,6 +402,8 @@ void execute(Command * command){
 	//restore in/out defaults
 	dup2(tmpin, 0);
 	dup2(tmpout, 1);
+	dup2(tmperr, 2);
+	close(tmperr);
 	close(tmpin);
 	close(tmpout);
 	if (!command->_background){
