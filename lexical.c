@@ -117,7 +117,7 @@ int main(int argc, char * argv[]) {
 	int startpos = 0;
 	//as of now running for only one command and then exiting, need overarching while loop
 	int textlength;
-	while(curstate != END) {
+	while(curstate != END && curstate != ERROR) {
 		getNext(&token, text, TEXTSIZE, &textlength);
 		//printToken( token );
 		//printf("token %d, text >%s< \n", token, text);
@@ -383,7 +383,6 @@ void execute(Command * command){
 			pipe(fdpipe);
 			fdout = fdpipe[1];
 			fdin = fdpipe[0];
-			fderr = fdpipe[2];
 		} // if/else
 
 		// Redirect output
