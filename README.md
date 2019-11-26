@@ -7,6 +7,7 @@ All code for this shell was built on top of the lexical analyzer found in lexica
 ## Compiling the Shell
 To compile, be in the root directory of the project where the makefile is.
 Make command: `make`
+If compiling fails, open and save lex.yy.c and try again!
 
 ## Running the Shell
 To run the shell type the command: `./lexical`
