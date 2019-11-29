@@ -87,6 +87,7 @@ void printToken(enum yytokentype token) {
 
 int main(int argc, char * argv[]) { 
 
+	int runOnce = 0;
 	//initialize the global currentsimplecommand struct
     SimpleCommand* curSimpleCommand;
     
@@ -94,9 +95,9 @@ int main(int argc, char * argv[]) {
    	Command* _currentCommand;
 
 	while(1){ //keep running until ctrl C -- need to add exit command
-	clear(_currentCommand);
+	if(runOnce != 0)clear(_currentCommand); //only clear after the first command
 	_currentCommand = initCommand();
-
+	runOnce++;
 	int outputRed = 0;
 	int inRed = 0;
 
@@ -304,7 +305,11 @@ void print(SimpleCommand *command){
 	printf("___END____\n");
 }
 
+//clears the command struct and all memory associated with it
 void clear(Command *command){
+	for (int i = 0; i < command->_numberOfSimpleCommands; i++){
+		free(command->_simpleCommands[i]);
+	}
 	free(command);
 }
 
