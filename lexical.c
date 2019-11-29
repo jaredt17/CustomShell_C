@@ -93,9 +93,10 @@ int main(int argc, char * argv[]) {
     //SET UP COMMAND struct
    	Command* _currentCommand;
 
-	while(1){ //keep running until ctrl C -- need to add exit command
-	clear(_currentCommand);
 	_currentCommand = initCommand();
+
+	while(1){ //keep running until ctrl C -- need to add exit command
+	//
 
 	int outputRed = 0;
 	int inRed = 0;
@@ -211,9 +212,11 @@ int main(int argc, char * argv[]) {
 			case END:
 				if(prevstate != ERROR){
 					insertSimpleCommand(curSimpleCommand, _currentCommand);
-					curSimpleCommand = initSimpleCommand();
-
 					execute(_currentCommand);
+
+					//need to clear memory here
+					clear(_currentCommand);
+
 					initCommand(_currentCommand);
 				}
 				
@@ -305,6 +308,12 @@ void print(SimpleCommand *command){
 }
 
 void clear(Command *command){
+	for(int i = 0; i < command->_numberOfSimpleCommands; i++){
+		for(int j = 0; j < command->_simpleCommands[i]->_numberOfArguments; j++){
+			free(command->_simpleCommands[i]->_arguments[j]);
+		}
+		free(command->_simpleCommands[i]);
+	}
 	free(command);
 }
 

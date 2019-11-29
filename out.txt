@@ -1,19 +1,15 @@
-total 664
-drwxrwxrwx 1 jaredt17 jaredt17   4096 Nov 29 12:33 .
-drwxrwxrwx 1 jaredt17 jaredt17   4096 Nov 25 15:58 ..
-drwxrwxrwx 1 jaredt17 jaredt17   4096 Nov 29 12:30 .git
--rw-rw-rw- 1 jaredt17 jaredt17    784 Nov 29 12:29 README.md
--rw-rw-rw- 1 jaredt17 jaredt17     70 Nov 25 16:17 err.txt
--rw-rw-rw- 1 jaredt17 jaredt17 436866 Nov 25 15:58 hw5specs.pdf
--rw-rw-rw- 1 jaredt17 jaredt17    137 Nov 25 18:17 in.txt
--rw-rw-rw- 1 jaredt17 jaredt17  45537 Nov 25 16:21 lex.yy.c
--rw-rw-rw- 1 jaredt17 jaredt17  42560 Nov 29 12:33 lex.yy.o
--rwxrwxrwx 1 jaredt17 jaredt17  43432 Nov 29 12:33 lexical
--rw-rw-rw- 1 jaredt17 jaredt17  13371 Nov 29 12:33 lexical.c
--rw-rw-rw- 1 jaredt17 jaredt17  21024 Nov 29 12:33 lexical.o
--rw-rw-rw- 1 jaredt17 jaredt17    169 Nov 25 15:58 makefile
--rw-rw-rw- 1 jaredt17 jaredt17      0 Nov 29 12:34 out.txt
--rw-rw-rw- 1 jaredt17 jaredt17   1041 Nov 25 15:58 readme.txt
--rw-rw-rw- 1 jaredt17 jaredt17    763 Nov 25 15:58 shell.l
--rw-rw-rw- 1 jaredt17 jaredt17     19 Nov 25 15:58 test.txt
--rw-rw-rw- 1 jaredt17 jaredt17   2275 Nov 25 15:58 y.tab.h
+err.txt
+hw5specs.pdf
+in.txt
+lexical
+lexical.c
+lexical.o
+lex.yy.c
+lex.yy.o
+makefile
+out.txt
+README.md
+readme.txt
+shell.l
+test.txt
+y.tab.h
