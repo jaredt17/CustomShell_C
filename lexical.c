@@ -94,7 +94,7 @@ int main(int argc, char * argv[]) {
    	Command* _currentCommand;
 
 	while(1){ //keep running until ctrl C -- need to add exit command
-	//if(runOnce != 0)clear(_currentCommand); //only clear after the first command
+	clear(_currentCommand);
 	_currentCommand = initCommand();
 
 	int outputRed = 0;
@@ -214,7 +214,6 @@ int main(int argc, char * argv[]) {
 					curSimpleCommand = initSimpleCommand();
 
 					execute(_currentCommand);
-					clear(_currentCommand);
 					initCommand(_currentCommand);
 				}
 				
@@ -305,11 +304,7 @@ void print(SimpleCommand *command){
 	printf("___END____\n");
 }
 
-//clears the command struct and all memory associated with it
 void clear(Command *command){
-	for(int i = 0; i<command->_numberOfSimpleCommands; i++){
-		free(command->_simpleCommands[i]);
-	}
 	free(command);
 }
 

@@ -1,5 +1,5 @@
 CC= gcc
-CFLAGS = -ggdb
+CFLAGS = -g
 
 lexical: lexical.o lex.yy.o
 
