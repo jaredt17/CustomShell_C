@@ -15,7 +15,7 @@ To run the shell type the command: `./lexical`
 You will see the prompt:
 `%` meaning you can enter commands now. 
 
-Command examples:
+Command examples:</br>
 `%ls -la > out.txt`</br>
 `%grep LINE < in.txt | sort`</br>
 `%ls -la >> out.txt`</br>
